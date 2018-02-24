@@ -152,10 +152,14 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 	}
 
 	if params.BackgroundColor != nil {
-		tmpImage, err = vipsFlattenBackground(tmpImage, *params.BackgroundColor)
+		tmpImage2, err := vipsFlattenBackground(tmpImage, *params.BackgroundColor)
 		if err != nil {
 			return nil, ImageTypeUnknown, err
 		}
+		if tmpImage2 != tmpImage {
+			defer C.g_object_unref(C.gpointer(tmpImage2))
+		}
+		tmpImage = tmpImage2
 	}
 
 	var ptr unsafe.Pointer
@@ -247,7 +251,7 @@ func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error
 		if int(err) != 0 {
 			return nil, handleVipsError()
 		}
-		C.g_object_unref(C.gpointer(input))
+		// C.g_object_unref(C.gpointer(input))
 		input = output
 	}
 
